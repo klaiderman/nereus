@@ -8,5 +8,9 @@ class FusionConfig:
     gate_radius_m: float = 200.0
     mismatch_dist_m: float = 100.0
     persist_frames: int = 3
+    miss_tolerance: int = 2
     exempt_length_m: float = 20.0
     min_confidence: float = 0.5
+    max_ais_age_s: float = 180.0
+    max_plausible_sog_kn: float = 80.0
+    mismatch_uncertainty_k: float = 1.0
