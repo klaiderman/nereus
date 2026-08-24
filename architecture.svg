@@ -1,0 +1,89 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="860" height="640" viewBox="0 0 860 640" font-family="ui-monospace, SFMono-Regular, Menlo, Consolas, monospace">
+  <defs>
+    <pattern id="grid" width="26" height="26" patternUnits="userSpaceOnUse">
+      <path d="M26 0H0V26" fill="none" stroke="#12233d" stroke-width="1"/>
+    </pattern>
+    <marker id="arrow" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+      <path d="M0 0 L10 5 L0 10 z" fill="#bc8cff"/>
+    </marker>
+    <style>
+      .bg{fill:#0a1628}
+      .card{fill:#0f1d33;stroke:#1e3a5f;stroke-width:1.5;rx:10}
+      .l1{stroke:#58a6ff}
+      .fp{stroke:#d75952}
+      .l2{stroke:#3fb950}
+      .io{stroke:#bc8cff}
+      .t{fill:#eaf2ff;font-size:14px;font-weight:600}
+      .s{fill:#9fb4d4;font-size:11.5px}
+      .tag{fill:#9fb4d4;font-size:10.5px}
+      .edge{stroke:#bc8cff;stroke-width:1.6;fill:none}
+      .title{fill:#eaf2ff;font-size:18px;font-weight:700;letter-spacing:1px}
+    </style>
+  </defs>
+
+  <rect class="bg" width="860" height="640"/>
+  <rect width="860" height="640" fill="url(#grid)"/>
+  <text class="title" x="30" y="42">NEREUS — architecture</text>
+  <text class="tag" x="30" y="62">deterministic camera-AIS fusion, per frame</text>
+
+  <!-- inputs -->
+  <rect class="card io" x="120" y="86" width="270" height="52" rx="10"/>
+  <text class="t" x="255" y="108" text-anchor="middle">camera detections</text>
+  <text class="s" x="255" y="126" text-anchor="middle">bbox + geo-position + class + confidence</text>
+
+  <rect class="card io" x="470" y="86" width="270" height="52" rx="10"/>
+  <text class="t" x="605" y="108" text-anchor="middle">AIS messages</text>
+  <text class="s" x="605" y="126" text-anchor="middle">MMSI + position + SOG + COG</text>
+
+  <path class="edge" d="M255 138 V162 H430 V178" marker-end="url(#arrow)"/>
+  <path class="edge" d="M605 138 V162 H430" />
+
+  <!-- ingest -->
+  <rect class="card l1" x="210" y="180" width="440" height="58" rx="10"/>
+  <text class="tag" x="224" y="198">INGEST</text>
+  <text class="t" x="430" y="210" text-anchor="middle">sanitize · validate · dedupe AIS per vessel</text>
+  <text class="s" x="430" y="228" text-anchor="middle">drop non-finite / stale / duplicate records before fusion</text>
+  <path class="edge" d="M430 238 V262" marker-end="url(#arrow)"/>
+
+  <!-- associate -->
+  <rect class="card l1" x="210" y="264" width="440" height="70" rx="10"/>
+  <text class="tag" x="224" y="282">ASSOCIATE  ·  stateless</text>
+  <text class="t" x="430" y="298" text-anchor="middle">dead-reckon AIS to now · gate · Hungarian assignment</text>
+  <text class="s" x="430" y="316" text-anchor="middle">matched  |  detection with no AIS  |  AIS with no detection</text>
+  <path class="edge" d="M430 334 V358" marker-end="url(#arrow)"/>
+
+  <!-- outcomes -->
+  <rect class="card fp" x="90" y="360" width="200" height="46" rx="10"/>
+  <text class="t" x="190" y="382" text-anchor="middle" fill="#d75952">DARK_VESSEL</text>
+  <text class="s" x="190" y="398" text-anchor="middle">seen, no AIS</text>
+
+  <rect class="card fp" x="330" y="360" width="200" height="46" rx="10"/>
+  <text class="t" x="430" y="382" text-anchor="middle" fill="#d8853b">AIS_GHOST</text>
+  <text class="s" x="430" y="398" text-anchor="middle">AIS, unseen (in coverage)</text>
+
+  <rect class="card fp" x="570" y="360" width="200" height="46" rx="10"/>
+  <text class="t" x="670" y="382" text-anchor="middle" fill="#d8853b">POSITION_MISMATCH</text>
+  <text class="s" x="670" y="398" text-anchor="middle">matched, positions disagree</text>
+
+  <path class="edge" d="M190 406 V430 H430 V446"/>
+  <path class="edge" d="M430 406 V446" marker-end="url(#arrow)"/>
+  <path class="edge" d="M670 406 V430 H430"/>
+
+  <!-- fp gating -->
+  <rect class="card fp" x="210" y="448" width="440" height="58" rx="10"/>
+  <text class="tag" x="224" y="466">FP-GATING  ·  earn the right to alert</text>
+  <text class="t" x="430" y="480" text-anchor="middle">size · confidence · coverage · nearest-AIS</text>
+  <text class="s" x="430" y="497" text-anchor="middle">throw away the false alarms; keep only defensible candidates</text>
+  <path class="edge" d="M430 506 V530" marker-end="url(#arrow)"/>
+
+  <!-- persistence -->
+  <rect class="card l2" x="210" y="532" width="440" height="52" rx="10"/>
+  <text class="tag" x="224" y="550">PERSISTENCE  ·  stateful</text>
+  <text class="t" x="430" y="564" text-anchor="middle">recur N frames (miss-tolerant) → PENDING → ALERT</text>
+  <path class="edge" d="M650 558 H726 V300 H752" marker-end="url(#arrow)"/>
+
+  <!-- output -->
+  <rect class="card io" x="700" y="276" width="140" height="48" rx="10"/>
+  <text class="t" x="770" y="298" text-anchor="middle">Anomaly</text>
+  <text class="s" x="770" y="314" text-anchor="middle">+ explain-trace</text>
+</svg>
