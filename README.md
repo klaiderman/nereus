@@ -79,7 +79,7 @@ engine = NereusEngine(cameras=[Camera("shore-1", 31.815, 34.615, range_m=3000.0)
 for detections, ais_messages, frame_ts in frames:
     for anomaly in engine.process_frame(detections, ais_messages, frame_ts):
         if anomaly.state is AnomalyState.ALERT:
-            handle(anomaly)   # anomaly.type, .subject_id, .trace, ...
+            handle(anomaly)
 ```
 
 In production you don't drive a loop — frames arrive over a message bus, so `process_frame` runs from the subscriber's callback, one call per frame, and alerts are pushed straight out:
@@ -90,9 +90,9 @@ engine = NereusEngine(cameras=load_cameras())
 def on_frame(detections, ais_messages, frame_ts):
     for anomaly in engine.process_frame(detections, ais_messages, frame_ts):
         if anomaly.state is AnomalyState.ALERT:
-            publish_alert(anomaly)          # -> WebSocket to the operator console
+            publish_alert(anomaly)
 
-subscribe("frames", on_frame)              # Redis pub/sub; REST for history, PostGIS for tracks
+subscribe("frames", on_frame)
 ```
 
 The engine is stateful across frames (persistence, replay-guard), so a single instance consumes the ordered stream. It is not an MCP server or an agent tool; this is a maritime data service.
