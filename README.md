@@ -76,7 +76,7 @@ from nereus.models.camera import Camera
 
 engine = NereusEngine(cameras=[Camera("shore-1", 31.815, 34.615, range_m=3000.0)])
 
-for detections, ais_messages, frame_ts in frames:          # your source of frames
+for detections, ais_messages, frame_ts in frames:
     for anomaly in engine.process_frame(detections, ais_messages, frame_ts):
         if anomaly.state is AnomalyState.ALERT:
             handle(anomaly)   # anomaly.type, .subject_id, .trace, ...
