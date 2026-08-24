@@ -36,11 +36,15 @@ Everything runs per frame. A frame is one batch of camera detections plus whatev
 
 AIS arrives every few seconds and the camera runs continuously, so an AIS report is almost never stamped at frame time; each one is dead-reckoned forward along its own course and speed before distances are measured, otherwise a perfectly matched vessel looks displaced. Matching is a global assignment (`scipy.optimize.linear_sum_assignment`) rather than nearest-neighbour, so two vessels crowded near one AIS track don't produce a bogus pairing.
 
+![greedy vs Hungarian](docs/greedy-vs-hungarian.svg)
+
 Three things can come out of it, and they are the three ways a broadcast can diverge from reality:
 
 - **DARK_VESSEL** — a detection with no AIS. The transponder is silent.
 - **AIS_GHOST** — an AIS track inside a camera's coverage with nothing on screen. The broadcast is fabricated.
 - **POSITION_MISMATCH** — a matched pair whose positions disagree by more than the mismatch threshold. The broadcast is displaced — the spoofing signature.
+
+![the mismatch band](docs/mismatch-band.svg)
 
 A candidate has to recur for a few consecutive frames to promote from `PENDING` to `ALERT`, and a brief gap (a dropped frame, a moment of occlusion) is tolerated rather than resetting the count. Every alert carries a trace of the gates it cleared, so an operator can see not just what fired but why it earned the right to.
 
