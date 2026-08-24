@@ -27,7 +27,7 @@ The hard part isn't finding a mismatch, it's earning the right to alert on one. 
 
 ## Architecture
 
-![Nereus architecture](architecture.svg)
+![Nereus architecture](docs/architecture.svg)
 
 Everything runs per frame. A frame is one batch of camera detections plus whatever AIS has arrived, at a timestamp. The correlation is deliberately stateless — one frame in, one clean split out. Persistence is the only stateful piece, kept separate on purpose.
 
@@ -46,10 +46,10 @@ A candidate has to recur for a few consecutive frames to promote from `PENDING` 
 ## Install
 
 ```bash
-pip install nereus
+pip install git+https://github.com/klaiderman/nereus
 ```
 
-From source, for development:
+Or from a clone, for development:
 
 ```bash
 git clone https://github.com/klaiderman/nereus
@@ -62,6 +62,7 @@ pytest
 
 ```python
 from nereus import NereusEngine
+from nereus.enums import AnomalyState
 from nereus.models.camera import Camera
 
 engine = NereusEngine(cameras=[Camera("shore-1", 31.815, 34.615, range_m=3000.0)])
