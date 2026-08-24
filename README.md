@@ -11,6 +11,7 @@ The name is Nereus, the "Old Man of the Sea" in Greek myth — the one who tells
 - [Why](#why)
 - [Architecture](#architecture)
 - [How it works](#how-it-works)
+- [Design notes](docs/design-notes.md)
 - [Install](#install)
 - [Using it](#using-it)
 - [Testing](#testing)
@@ -43,6 +44,8 @@ Three things can come out of it, and they are the three ways a broadcast can div
 
 A candidate has to recur for a few consecutive frames to promote from `PENDING` to `ALERT`, and a brief gap (a dropped frame, a moment of occlusion) is tolerated rather than resetting the count. Every alert carries a trace of the gates it cleared, so an operator can see not just what fired but why it earned the right to.
 
+The reasoning behind the less obvious choices — Hungarian over greedy, the mismatch band, why the whole thing is deterministic — is in [docs/design-notes.md](docs/design-notes.md).
+
 ## Install
 
 ```bash
@@ -60,6 +63,8 @@ pytest
 
 ## Using it
 
+The engine is a pure library — it holds no I/O, you feed it one frame at a time. The whole API is `process_frame`:
+
 ```python
 from nereus import NereusEngine
 from nereus.enums import AnomalyState
@@ -67,13 +72,26 @@ from nereus.models.camera import Camera
 
 engine = NereusEngine(cameras=[Camera("shore-1", 31.815, 34.615, range_m=3000.0)])
 
-for detections, ais_messages, frame_ts in feed:
+for detections, ais_messages, frame_ts in frames:          # your source of frames
     for anomaly in engine.process_frame(detections, ais_messages, frame_ts):
         if anomaly.state is AnomalyState.ALERT:
             handle(anomaly)   # anomaly.type, .subject_id, .trace, ...
 ```
 
-The engine is a pure library — it does not fetch anything, you feed it a frame at a time. In production the detection and AIS streams arrive over pub/sub, alerts go out over a WebSocket to the operator console with REST for history, and tracks are stored in PostGIS. It is not an MCP server or an agent tool; this is a maritime data service.
+In production you don't drive a loop — frames arrive over a message bus, so `process_frame` runs from the subscriber's callback, one call per frame, and alerts are pushed straight out:
+
+```python
+engine = NereusEngine(cameras=load_cameras())
+
+def on_frame(detections, ais_messages, frame_ts):
+    for anomaly in engine.process_frame(detections, ais_messages, frame_ts):
+        if anomaly.state is AnomalyState.ALERT:
+            publish_alert(anomaly)          # -> WebSocket to the operator console
+
+subscribe("frames", on_frame)              # Redis pub/sub; REST for history, PostGIS for tracks
+```
+
+The engine is stateful across frames (persistence, replay-guard), so a single instance consumes the ordered stream. It is not an MCP server or an agent tool; this is a maritime data service.
 
 ## Testing
 
