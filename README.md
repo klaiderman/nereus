@@ -1,8 +1,21 @@
 # Nereus
 
-[![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](LICENSE) [![Repository](https://img.shields.io/badge/GitHub-klaiderman%2Fnereus-181717?logo=github)](https://github.com/klaiderman/nereus)
+[![License: MIT](https://img.shields.io/badge/license-MIT-blue.svg)](LICENSE) [![Python](https://img.shields.io/badge/python-3.11%2B-blue.svg)](pyproject.toml) [![tests](https://img.shields.io/badge/tests-66%20passing-brightgreen.svg)](tests/) [![Repository](https://img.shields.io/badge/GitHub-klaiderman%2Fnereus-181717?logo=github)](https://github.com/klaiderman/nereus)
 
 Nereus is a deterministic engine for spotting vessels that are trying to disappear — a ship a shore camera clearly sees, but that is broadcasting no matching AIS. It takes the camera's vessel detections and the live AIS feed, correlates them, and flags the ones that don't line up. There is no model inside Nereus itself: the perception (is this a ship, how big, how sure) happens upstream in the vision pipeline, and Nereus is the deterministic layer that decides what actually warrants an alert.
+
+The name is Nereus, the "Old Man of the Sea" in Greek myth — the one who tells no lies and yields the truth only once you pin him down and he stops shifting shape. This engine works the same way: it will not raise an alarm until a suspect has held still across enough frames to be sure of.
+
+## Contents
+
+- [Why](#why)
+- [Architecture](#architecture)
+- [How it works](#how-it-works)
+- [Install](#install)
+- [Using it](#using-it)
+- [Testing](#testing)
+- [The audit](#the-audit)
+- [Roadmap](#roadmap)
 
 ## Why
 
@@ -12,26 +25,15 @@ Everyone else in this space works from satellite or RF AIS, which is blind to ex
 
 The hard part isn't finding a mismatch, it's earning the right to alert on one. A raw "camera sees a vessel, no AIS" is not yet a threat: it could be a small craft that is legally exempt, a low-confidence blob the vision model isn't sure about, or a single-frame flicker off a wave. Nereus is mostly the discipline of throwing those away, so what reaches the operator is defensible.
 
+## Architecture
+
+![Nereus architecture](architecture.svg)
+
+Everything runs per frame. A frame is one batch of camera detections plus whatever AIS has arrived, at a timestamp. The correlation is deliberately stateless — one frame in, one clean split out. Persistence is the only stateful piece, kept separate on purpose.
+
 ## How it works
 
-Everything runs per frame. A frame is one batch of camera detections plus whatever AIS has arrived, at a timestamp.
-
-```
-detections + AIS
-      |
-   ingest        drop broken records, dedupe AIS to one report per vessel
-      |
-  associate      dead-reckon each AIS to now, match to detections (Hungarian)
-      |          -> matched | detection with no AIS | AIS with no detection
-      |
-  fp-gating      size / confidence / coverage — throw away the false alarms
-      |
-  persistence    a suspect must recur N frames before it becomes an alert
-      |
-   Anomaly + trace
-```
-
-The correlation is deliberately stateless — one frame in, one clean split out. AIS arrives every few seconds and the camera runs continuously, so an AIS report is almost never stamped at frame time; each one is dead-reckoned forward along its own course and speed before distances are measured, otherwise a perfectly matched vessel looks displaced. Matching is a global assignment (`scipy.optimize.linear_sum_assignment`) rather than nearest-neighbour, so two vessels crowded near one AIS track don't produce a bogus pairing.
+AIS arrives every few seconds and the camera runs continuously, so an AIS report is almost never stamped at frame time; each one is dead-reckoned forward along its own course and speed before distances are measured, otherwise a perfectly matched vessel looks displaced. Matching is a global assignment (`scipy.optimize.linear_sum_assignment`) rather than nearest-neighbour, so two vessels crowded near one AIS track don't produce a bogus pairing.
 
 Three things can come out of it, and they are the three ways a broadcast can diverge from reality:
 
@@ -39,16 +41,22 @@ Three things can come out of it, and they are the three ways a broadcast can div
 - **AIS_GHOST** — an AIS track inside a camera's coverage with nothing on screen. The broadcast is fabricated.
 - **POSITION_MISMATCH** — a matched pair whose positions disagree by more than the mismatch threshold. The broadcast is displaced — the spoofing signature.
 
-Persistence is the only stateful piece, kept separate on purpose: a candidate has to recur for a few consecutive frames to promote from `PENDING` to `ALERT`, and a brief gap (a dropped frame, a moment of occlusion) is tolerated rather than resetting the count. Every alert carries a trace of the gates it cleared, so an operator can see not just what fired but why it earned the right to.
+A candidate has to recur for a few consecutive frames to promote from `PENDING` to `ALERT`, and a brief gap (a dropped frame, a moment of occlusion) is tolerated rather than resetting the count. Every alert carries a trace of the gates it cleared, so an operator can see not just what fired but why it earned the right to.
 
-## Run
+## Install
 
 ```bash
+pip install nereus
+```
+
+From source, for development:
+
+```bash
+git clone https://github.com/klaiderman/nereus
+cd nereus
 pip install -e ".[dev]"
 pytest
 ```
-
-Same input, same alerts, every time. 66 tests, all green.
 
 ## Using it
 
@@ -64,11 +72,15 @@ for detections, ais_messages, frame_ts in feed:
             handle(anomaly)   # anomaly.type, .subject_id, .trace, ...
 ```
 
-The engine is a pure library — it does not fetch anything, you feed it a frame at a time. In production the detection and AIS streams arrive over pub/sub, alerts go out over a WebSocket to the operator console with REST for history, and tracks are stored in PostGIS. It is not an MCP server or an agent tool; this is a maritime data service, and forcing an agent protocol onto it would be the wrong instinct.
+The engine is a pure library — it does not fetch anything, you feed it a frame at a time. In production the detection and AIS streams arrive over pub/sub, alerts go out over a WebSocket to the operator console with REST for history, and tracks are stored in PostGIS. It is not an MCP server or an agent tool; this is a maritime data service.
 
 ## Testing
 
-The suite covers each stage in isolation plus a full harbour scenario as a regression test — a fishing skiff that must stay silent, a large dark vessel that must alert only after it persists, a ghost, and a clean matched pair. It also pins every failure mode found in the audit below (NaN coordinates, duplicate MMSI, the greedy-assignment trap, cross-camera identity, replayed frames) so a fix can't silently regress.
+```bash
+pytest
+```
+
+The suite covers each stage in isolation plus a full harbour scenario as a regression test — a fishing skiff that must stay silent, a large dark vessel that must alert only after it persists, a ghost, and a clean matched pair. It also pins every failure mode found in the audit below (NaN coordinates, duplicate MMSI, the greedy-assignment trap, cross-camera identity, replayed frames) so a fix can't silently regress. Same input, same alerts, every time.
 
 ## The audit
 
