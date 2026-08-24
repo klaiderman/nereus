@@ -1,0 +1,68 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="830" height="300" viewBox="0 0 830 300" font-family="ui-monospace, SFMono-Regular, Menlo, Consolas, monospace">
+  <defs>
+    <pattern id="g" width="26" height="26" patternUnits="userSpaceOnUse">
+      <path d="M26 0H0V26" fill="none" stroke="#12233d" stroke-width="1"/>
+    </pattern>
+  </defs>
+  <rect width="830" height="300" fill="#0a1628"/>
+  <rect width="830" height="300" fill="url(#g)"/>
+  <text x="20" y="30" fill="#eaf2ff" font-size="15" font-weight="700">greedy vs Hungarian — two vessels crowded near one AIS track</text>
+
+  <!-- ================= PANEL 1 : THE SCENE ================= -->
+  <rect x="20" y="48" width="250" height="212" rx="10" fill="#0f1d33" stroke="#1e3a5f" stroke-width="1.5"/>
+  <text x="34" y="68" fill="#9fb4d4" font-size="11">THE SCENE</text>
+  <!-- distance lines -->
+  <line x1="73" y1="103" x2="160" y2="125" stroke="#3a5578" stroke-width="1"/>
+  <line x1="73" y1="158" x2="160" y2="125" stroke="#3a5578" stroke-width="1"/>
+  <line x1="73" y1="158" x2="205" y2="205" stroke="#3a5578" stroke-width="1"/>
+  <line x1="73" y1="103" x2="205" y2="205" stroke="#3a5578" stroke-width="1"/>
+  <text x="104" y="106" fill="#9fb4d4" font-size="10">50</text>
+  <text x="104" y="150" fill="#9fb4d4" font-size="10">50</text>
+  <text x="120" y="188" fill="#9fb4d4" font-size="10">150</text>
+  <text x="150" y="150" fill="#9fb4d4" font-size="10">250</text>
+  <rect x="65" y="95" width="16" height="16" rx="2" fill="#0f1d33" stroke="#58a6ff" stroke-width="1.5"/>
+  <text x="60" y="90" fill="#58a6ff" font-size="11">D2</text>
+  <rect x="65" y="150" width="16" height="16" rx="2" fill="#0f1d33" stroke="#58a6ff" stroke-width="1.5"/>
+  <text x="60" y="184" fill="#58a6ff" font-size="11">D1</text>
+  <circle cx="160" cy="125" r="9" fill="#0f1d33" stroke="#d8853b" stroke-width="1.5"/>
+  <text x="171" y="123" fill="#d8853b" font-size="11">A1</text>
+  <circle cx="205" cy="205" r="9" fill="#0f1d33" stroke="#d8853b" stroke-width="1.5"/>
+  <text x="216" y="209" fill="#d8853b" font-size="11">A2</text>
+  <text x="34" y="250" fill="#9fb4d4" font-size="10.5">□ detections   ○ AIS   (metres)</text>
+
+  <!-- ================= PANEL 2 : GREEDY ================= -->
+  <rect x="290" y="48" width="250" height="212" rx="10" fill="#0f1d33" stroke="#d75952" stroke-width="1.5"/>
+  <text x="304" y="68" fill="#d75952" font-size="11">GREEDY — each to nearest</text>
+  <line x1="343" y1="158" x2="430" y2="125" stroke="#3fb950" stroke-width="2"/>
+  <line x1="343" y1="103" x2="475" y2="205" stroke="#d75952" stroke-width="2" stroke-dasharray="5 4"/>
+  <text x="360" y="150" fill="#3fb950" font-size="10">50</text>
+  <text x="405" y="150" fill="#d75952" font-size="10">250 ✗</text>
+  <rect x="335" y="95" width="16" height="16" rx="2" fill="#0f1d33" stroke="#58a6ff" stroke-width="1.5"/>
+  <text x="330" y="90" fill="#58a6ff" font-size="11">D2</text>
+  <rect x="335" y="150" width="16" height="16" rx="2" fill="#0f1d33" stroke="#58a6ff" stroke-width="1.5"/>
+  <text x="330" y="184" fill="#58a6ff" font-size="11">D1</text>
+  <circle cx="430" cy="125" r="9" fill="#0f1d33" stroke="#d8853b" stroke-width="1.5"/>
+  <text x="441" y="123" fill="#d8853b" font-size="11">A1</text>
+  <circle cx="475" cy="205" r="9" fill="#0f1d33" stroke="#d8853b" stroke-width="1.5"/>
+  <text x="486" y="209" fill="#d8853b" font-size="11">A2</text>
+  <text x="304" y="245" fill="#d75952" font-size="10.5">D1 grabs A1; D2 stranded on A2</text>
+  <text x="304" y="258" fill="#d75952" font-size="10.5">(past the gate) → false DARK_VESSEL</text>
+
+  <!-- ================= PANEL 3 : HUNGARIAN ================= -->
+  <rect x="560" y="48" width="250" height="212" rx="10" fill="#0f1d33" stroke="#3fb950" stroke-width="1.5"/>
+  <text x="574" y="68" fill="#3fb950" font-size="11">HUNGARIAN — min total</text>
+  <line x1="613" y1="158" x2="745" y2="205" stroke="#3fb950" stroke-width="2"/>
+  <line x1="613" y1="103" x2="700" y2="125" stroke="#3fb950" stroke-width="2"/>
+  <text x="660" y="190" fill="#3fb950" font-size="10">150</text>
+  <text x="640" y="123" fill="#3fb950" font-size="10">50</text>
+  <rect x="605" y="95" width="16" height="16" rx="2" fill="#0f1d33" stroke="#58a6ff" stroke-width="1.5"/>
+  <text x="600" y="90" fill="#58a6ff" font-size="11">D2</text>
+  <rect x="605" y="150" width="16" height="16" rx="2" fill="#0f1d33" stroke="#58a6ff" stroke-width="1.5"/>
+  <text x="600" y="184" fill="#58a6ff" font-size="11">D1</text>
+  <circle cx="700" cy="125" r="9" fill="#0f1d33" stroke="#d8853b" stroke-width="1.5"/>
+  <text x="711" y="123" fill="#d8853b" font-size="11">A1</text>
+  <circle cx="745" cy="205" r="9" fill="#0f1d33" stroke="#d8853b" stroke-width="1.5"/>
+  <text x="756" y="209" fill="#d8853b" font-size="11">A2</text>
+  <text x="574" y="245" fill="#3fb950" font-size="10.5">D1→A2 + D2→A1 = 200 total</text>
+  <text x="574" y="258" fill="#3fb950" font-size="10.5">both vessels matched correctly ✓</text>
+</svg>

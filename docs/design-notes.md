@@ -6,6 +6,8 @@ A few decisions that aren't obvious from the code.
 
 Matching detections to AIS tracks is an assignment problem, and greedy "each detection to its closest AIS" gets it wrong the moment two vessels crowd near one track.
 
+![greedy vs Hungarian](greedy-vs-hungarian.svg)
+
 Two detections `D1`, `D2` and two AIS tracks `A1`, `A2`. `D1` is 50 m from `A1` and 150 m from `A2`; `D2` is 50 m from `A1` and 250 m from `A2` (past the gate).
 
 - **Greedy** (each detection to its nearest AIS) hands `A1` to whichever detection it processes first and pushes the other onto `A2`. If `D2` lands on `A2` at 250 m it's past the gate and goes unmatched — a false `DARK_VESSEL` — while `D1` keeps a partner it shouldn't have.
@@ -17,11 +19,7 @@ Greedy commits locally and can't undo it; Hungarian sees the whole board. It's `
 
 The distance between a detection and its matched AIS is the whole signal:
 
-```
-0 .......... mismatch_dist (100 m) .......... gate_radius (200 m) ..........>
-     normal              POSITION_MISMATCH            not the same ship
-                         (the spoofing signature)     -> DARK_VESSEL + AIS_GHOST
-```
+![the mismatch band](mismatch-band.svg)
 
 A matched pair is only a mismatch if no *other* AIS sits within `mismatch_dist` of the detection — a nearer track means the assignment was wrong, not the position. And the threshold grows with how far the AIS had to be dead-reckoned, so a manoeuvring vessel carrying a stale report isn't flagged for a gap that projection, not spoofing, explains.
 
